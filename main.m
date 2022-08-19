@@ -17,17 +17,15 @@ parameters.Voc      =   240;    % *1 should be variable wrt state of charge, see
 parameters.R0       =   0.13;   % *1 should be variable wrt state of charge, see pag.92
 parameters.Qnom     =   23400;  % *1
 parameters.eta_coul =   0.95;
-parameters.dim_decision_var = 4;
-parameters.interval_size = 1800/parameters.dim_decision_var; % (dimension of the decision variable) will be length of u_compressed
 parameters.initial_soc = 0.8;
 
-% read wltp excel file
+%% read wltp excel file
 wltp_cycle = xlsread('wltp_cycle.xlsx');
 parameters.time_vec = wltp_cycle(:,1);
 parameters.v_vec = wltp_cycle(:,2)/3.6;
 parameters.a_vec = wltp_cycle(:,3);
 
-%% Plot speed and acceleration profile
+%% Plot speed and acceleration profile from wltp
 figure(1), set(gcf, 'Color', 'White'),
 sp(1) = subplot(2,1,1);
 hold on, grid on, box on
@@ -45,10 +43,11 @@ parameters.lasso_param=lasso_param;
 
 %% Simulation parameters
 Ts=1;            % sampling time (s)
-Tend=1800;
 tvec=parameters.time_vec;
 N=length(tvec);
 parameters.N = N;
+parameters.dim_decision_var = 1;
+parameters.interval_size = N/parameters.dim_decision_var; % (dimension of the decision variable) will be length of u_compressed
 interval_size = parameters.interval_size; % (dimension of the decision variable) will be length of u_compressed
 
 %% Linear equality constraint parameters
@@ -91,15 +90,6 @@ q = 2*N; % N inequality constraint "soc_vec(ind,1) > 0.1 for every Ts" and N ine
 tic
 [xstar,fxstar,niter,exitflag,xsequence] = myfmincon(@(x)fun(x,parameters),x0,A,b,C,d,p,q,myoptions);
 toc
-
-%% xstar_decompressed computation:
-xstar_decompressed=[];
-for i=1:length(xstar)
-    for j=1:round(N/interval_size)
-        xstar_decompressed = [xstar_decompressed ; xstar(i)];
-    end
-end
-xstar_decompressed = [xstar_decompressed; xstar_decompressed(end)];
 
 %% Simulation (only ICE)
 m_f1 = zeros(N,1);        % this will be the integral in tvec of m_f_dot
@@ -179,7 +169,7 @@ for i=1:length(xstar)
         xstar_decompressed = [xstar_decompressed ; xstar(i)];
     end
 end
-xstar_decompressed = [xstar_decompressed; xstar_decompressed(end)];
+% xstar_decompressed = [xstar_decompressed; xstar_decompressed(end)];
 
 u_vec = xstar_decompressed;
 for ind=2:N
