@@ -18,8 +18,8 @@ parameters.R0       =   0.13;   % *1 should be variable wrt state of charge, see
 parameters.Qnom     =   23400;  % *1
 parameters.eta_coul =   0.95;
 
-dim_decision_var = 4;
-parameters.interval_size = 1800/dim_decision_var; % (dimension of the decision variable) will be length of u_compressed
+parameters.dim_decision_var = 4;
+parameters.interval_size = 1800/parameters.dim_decision_var; % (dimension of the decision variable) will be length of u_compressed
 
 parameters.initial_soc = 0.8;
 
