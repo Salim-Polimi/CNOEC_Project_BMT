@@ -16,6 +16,8 @@ Qnom    =   parameters.Qnom;
 eta_coul=   parameters.eta_coul;
 lasso_param = parameters.lasso_param;
 
+reg_break_limit = parameters.reg_break_limit;
+
 vref=parameters.v_vec(ind);
 a=parameters.a_vec(ind);
 
@@ -33,7 +35,11 @@ if Pw >= 0
     Peng = Pw*(1-u);
 else
     % Regenerative Braking
-    Pem = 0;   % We need to check if this doesn't past the limits on the power battery
+    if abs(Pw) < abs(reg_break_limit)
+        Pem = Pw;
+    else
+        Pem = -abs(reg_break_limit);
+    end
     Peng = 0;
 end
 
@@ -42,7 +48,7 @@ if vref==0
     Pf = 0; % "start&stop not controled by optimization" hypothesis
 else
     ww=vref/R;
-    Tw=Peng/ww;          % ww is already in rad/s
+    Tw=Peng/ww;          
     tau = gearbox(vref);
     weng=ww*tau;
     Teng=Tw/tau;

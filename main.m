@@ -4,19 +4,21 @@ clc
 
 %% Model parameters
 % *1: da "Hybrid Electric Energy Management Strategies, Onori, Serrao, Rizzoni"
-parameters.rhoa     =   1.22;   % *1 kg/m^3 
-parameters.Af       =   2.33;   % *1 m^2
+parameters.rhoa     =   1.22;   % *1 [kg/m^3]
+parameters.Af       =   2.33;   % *1 [m^2]
 parameters.Cd       =   0.26;   % *1 
-parameters.g        =   9.81;   % N*m/s^2
+parameters.g        =   9.81;   % [N*m/s^2]
 parameters.Crr      =   0.024;  % *1 
-parameters.m_v      =   1370;   % *1 kg
-parameters.R        =   0.32;   % *1 m
+parameters.m_v      =   1370;   % *1 [kg]
+parameters.R        =   0.32;   % *1 [m]
 parameters.lambda   =   43.4*1e6;
 parameters.eta_em   =   0.8;
-parameters.Voc      =   240;    % *1 V
-parameters.R0       =   0.13;   % *1 Ohm
-parameters.Qnom     =   23400;  % *1 C
+parameters.Voc      =   240;    % *1 [V]
+parameters.R0       =   0.13;   % *1 [Ohm]
+parameters.Qnom     =   23400;  % *1 [C]
 parameters.eta_coul =   0.95;
+
+parameters.reg_break_limit = 10000; % regenerative breaking max recharge power [kW]
 
 dim_decision_var = 4; % time interval in seconds, equivalent to the dimension of the decision variable
 interval_size = 1800/dim_decision_var; % will be length of u_compressed
@@ -71,7 +73,7 @@ myoptions.ls_beta       =	0.1;
 myoptions.ls_c          =	0.1;
 myoptions.ls_nitermax   =	10;
 
-myoptions.nitermax      =	50;
+myoptions.nitermax      =	1;
 
 myoptions.xsequence     =	'on';
 myoptions.GN_funF       =   @(x)big_fun(x,parameters);
@@ -110,7 +112,7 @@ u_vec = zeros(N,1);
 for ind=2:N
     [m_f_dot,soc_dot] = fuel_consumption(parameters, u_vec(ind,1),ind);
     m_f_ICE(ind,1) = m_f_ICE(ind-1,1)+Ts*m_f_dot; 
-    soc_vec_ICE(ind,1) = soc_vec_ICE(ind-1,1)+Ts*soc_dot;
+    soc_vec_ICE(ind,1) = soc_vec_ICE(ind-1,1); % soc never changes
 end
 
 %% Simulation ICE only + EM from regenerative braking
