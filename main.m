@@ -116,31 +116,26 @@ for ind=2:N
 end
 
 %% Simulation ICE only + EM from regenerative braking
-% m_f2 = zeros(N,1);        % this will be the integral in tvec of m_f_dot
-% m_f_dot_vec = zeros(N,1);
-% soc_dot_vec = zeros(N,1);
-% soc_vec2 = zeros(N,1);
-% 
-% % initialization of the soc -> start from a safe segion SOC=0.9
-% soc_vec2(1,1) = parameters.initial_soc;
-% 
-% % second strategy -> only EM until we have battery, then switch to ICE  (uncomment and comment prevous line)
-% u_vec = zeros(N,1);
-% 
-% 
-% for ind=2:N
-%     [m_f_dot,soc_dot] = fuel_consumption(parameters, u_vec(ind,1),ind);
-%     
-%     m_f_dot_vec(ind,1) = m_f_dot; 
-%     m_f2(ind,1) = m_f2(ind-1,1)+Ts*m_f_dot; 
-% 
-%     soc_dot_vec(ind,1) = soc_dot;
-%     soc_vec2(ind,1) = soc_vec2(ind-1,1)+Ts*soc_dot;
-%     
-%     if soc_vec2(ind,1) <= 0.1
-%         u_vec(ind+1,1) = 0;
-%     end
-% end
+m_f_ICEreg = zeros(N,1);
+soc_vec_ICEreg = zeros(N,1);
+
+% initialization of the soc
+soc_vec_ICEreg(1,1) = parameters.initial_soc;
+
+% second strategy -> use EM if soc > initial_soc
+u_vec = zeros(N,1);
+
+for ind=2:N
+    [m_f_dot,soc_dot] = fuel_consumption(parameters, u_vec(ind,1),ind);
+    
+    m_f_ICEreg(ind,1) = m_f_ICEreg(ind-1,1)+Ts*m_f_dot; 
+
+    soc_vec_ICEreg(ind,1) = soc_vec_ICEreg(ind-1,1)+Ts*soc_dot;
+    
+    if soc_vec_ICEreg(ind,1) > parameters.initial_soc
+        u_vec(ind+1,1) = 1;
+    end
+end
 %% Simulation (optimum control)
 m_f_opt = zeros(N,1); % mass of the fuel
 soc_vec_opt = zeros(N,1); % state of charge
@@ -170,20 +165,18 @@ close all
 
 figure(1),
 plot(tvec, m_f_ICE,'LineWidth',1.5),grid on, hold on,xlabel('time [s]'),ylabel('fuel consumption [kg]')
+% plot(tvec, m_f_ICEreg,'LineWidth',1.5,'color', 'r'),grid on, hold on,xlabel('time [s]'),ylabel('fuel consumption [kg]')
 plot(tvec, m_f_opt,'LineWidth',1.5,'color', 'g'),grid on, hold on,xlabel('time [s]'),ylabel('fuel consumption [kg]')
-legend('ICE only', 'Optimum Ctrl')
+legend('ICE only', 'ICE+RB', 'Optimum Ctrl')
 
 figure(2),
 plot(tvec, soc_vec_ICE,'LineWidth',1.5),grid on, hold on, xlabel('time [s]'),ylabel('soc')
+% plot(tvec, soc_vec_ICEreg,'LineWidth',1.5,'color', 'r'),grid on, hold on, xlabel('time [s]'),ylabel('soc')
 plot(tvec, soc_vec_opt,'LineWidth',1.5,'color', 'g'),grid on, hold on, xlabel('time [s]'),ylabel('soc')
-legend('ICE only', 'Optimum Ctrl')
+legend('ICE only', 'ICE+RB','Optimum Ctrl')
 axis([-inf inf 0 1])
 
 figure(3)
 plot(tvec, xstar_decompressed,'LineWidth',1.5),grid on, hold on, xlabel('time [s]'),ylabel('control variable')
 legend('Optimum Ctrl')
 axis([-inf inf -2 1.2])
-
-
-
-
