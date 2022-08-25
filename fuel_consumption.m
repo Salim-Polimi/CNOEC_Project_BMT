@@ -28,12 +28,16 @@ Pw = Fw*vref;
 
 % Power Split Computation
 if Pw >= 0
+    
     % Traction / Costing
     Pem = Pw*u;
     Peng = Pw*(1-u);
 else
     % Regenerative Braking
-    Pem = 0;   % We need to check if this doesn't past the limits on the power battery
+    if Pw < -10000
+        Pw = -10000;
+    end
+    Pem = Pw;   % We need to check if this doesn't past the limits on the power battery
     Peng = 0;
 end
 
@@ -54,10 +58,5 @@ m_f_dot=Pf/lambda;
 % Battery Consumption Calculation (soc_dot)
 Pb=Pem/eta_em;
 Ib=Voc/(2*R0)-sqrt((Voc/(2*R0))^2-Pb/R0);
-if Ib<0
-    soc_dot = -Ib*(eta_coul/Qnom);
-else
-    soc_dot = -Ib*(1/(Qnom*eta_coul));
-end
-
+soc_dot = -Ib/Qnom*eta_coul^(sign(-Ib));
 

@@ -30,11 +30,11 @@ figure(1), set(gcf, 'Color', 'White'),
 sp(1) = subplot(2,1,1);
 hold on, grid on, box on
 plot(parameters.time_vec, parameters.v_vec*3.6, 'LineWidth',1.5,'Color','b')
-xlabel('Time [s]'), ylabel('Speed in the driving cycle [km/h]')
+xlabel('Time [s]'), ylabel('Speed [km/h]')
 sp(2) = subplot(2,1,2);
 hold on, grid on, box on
 plot(parameters.time_vec, parameters.a_vec, 'LineWidth',1.5,'Color','b')
-xlabel('Time [s]'), ylabel('Acceleration in the driving cycle [m/s^2')
+xlabel('Time [s]'), ylabel('Acceleration [m/s^2]')
 linkaxes(sp,'x'), clear sp
 
 %% Retrive efficiency map
@@ -105,12 +105,14 @@ u_vec = zeros(N,1);
 
 
 for ind=2:N
-    if soc_vec1(ind-1,1) > 0.9
-        u_vec(ind,1) = 1;
-    end
+    
     [m_f_dot,soc_dot] = fuel_consumption(parameters, u_vec(ind,1),ind);
     m_f_dot_vec(ind,1) = m_f_dot; 
     m_f1(ind,1) = m_f1(ind-1,1)+Ts*m_f_dot; 
+    
+    if (soc_dot > 0)
+       soc_dot=0; 
+    end
 
     soc_dot_vec(ind,1) = soc_dot;
     soc_vec1(ind,1) = soc_vec1(ind-1,1)+Ts*soc_dot;
@@ -133,9 +135,8 @@ for ind=2:N
         u_vec(ind,1) = 1;
     end
     if parameters.v_vec(ind)*3.6 > 80
-        u_vec(ind,1) = -0.3;
+        u_vec(ind,1) = -0.2;
     end
-    
     
     [m_f_dot,soc_dot] = fuel_consumption(parameters, u_vec(ind,1),ind);
     
@@ -145,9 +146,6 @@ for ind=2:N
     soc_dot_vec(ind,1) = soc_dot;
     soc_vec2(ind,1) = soc_vec2(ind-1,1)+Ts*soc_dot;
     
-    if soc_vec2(ind,1) <= 0.1
-        u_vec(ind+1,1) = 0;
-    end
 end
 %% Simulation (optimum control)
 m_f3 = zeros(N,1); % this will be the integral in tvec of m_f_dot
@@ -169,7 +167,6 @@ for i=1:length(xstar)
         xstar_decompressed = [xstar_decompressed ; xstar(i)];
     end
 end
-% xstar_decompressed = [xstar_decompressed; xstar_decompressed(end)];
 
 u_vec = xstar_decompressed;
 for ind=2:N
@@ -186,14 +183,14 @@ end
 figure(2), set(gcf, 'Color', 'White'),
 grid on, hold on,xlabel('time [s]'),ylabel('fuel consumption [kg]')
 plot(tvec, m_f1,'LineWidth',1.5,'color', 'b', 'DisplayName', 'ICE Only')
-plot(tvec, m_f2,'LineWidth',1.5,'color', 'r', 'DisplayName', 'Heuristic')
+%plot(tvec, m_f2,'LineWidth',1.5,'color', 'r', 'DisplayName', 'Heuristic')
 plot(tvec, m_f3,'LineWidth',1.5,'color', 'g', 'DisplayName', 'Optimum Ctrl')
 legend show
 
 figure(3), set(gcf, 'Color', 'White'),
-grid on, hold on, xlabel('time [s]'),ylabel('soc'), axis([-inf inf 0 1])
+grid on, hold on, xlabel('time [s]'),ylabel('soc [-]'), axis([-inf inf 0 1])
 plot(tvec, soc_vec1,'LineWidth',1.5,'color', 'b', 'DisplayName', 'ICE Only')
-plot(tvec, soc_vec2,'LineWidth',1.5,'color', 'r', 'DisplayName', 'Heuristic')
+%plot(tvec, soc_vec2,'LineWidth',1.5,'color', 'r', 'DisplayName', 'Heuristic')
 plot(tvec, soc_vec3,'LineWidth',1.5,'color', 'g', 'DisplayName', 'Optimum Ctrl')
 legend show
 
@@ -212,4 +209,7 @@ plot(tvec, xstar_decompressed,'LineWidth',1.5, 'LineWidth',1.5,'Color','b')
 xlabel('Time [s]'), ylabel('Control variable u'), axis([-inf inf -1.2 1.2])
 linkaxes(sp,'x'), clear sp
 
-
+figure(5), set(gcf, 'Color', 'White'),
+grid on, hold on,xlabel('time [s]'),ylabel('fuel consumption [kg]')
+plot(tvec, xstar_decompressed,'LineWidth',1.5,'Color','b')
+xlabel('Time [s]'), ylabel('Optimization variable x [-]'), axis([-inf inf -1.2 1.2])

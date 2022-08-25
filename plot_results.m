@@ -20,12 +20,13 @@ u_vec = zeros(N,1);
 
 
 for ind=2:N
-    if soc_vec1(ind-1,1) > 0.9
-        u_vec(ind,1) = 1;
-    end
     [m_f_dot,soc_dot] = fuel_consumption(parameters, u_vec(ind,1),ind);
     m_f_dot_vec(ind,1) = m_f_dot; 
     m_f1(ind,1) = m_f1(ind-1,1)+Ts*m_f_dot; 
+    
+    if (soc_dot > 0)
+       soc_dot=0; 
+    end
 
     soc_dot_vec(ind,1) = soc_dot;
     soc_vec1(ind,1) = soc_vec1(ind-1,1)+Ts*soc_dot;
