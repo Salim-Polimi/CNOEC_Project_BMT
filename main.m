@@ -2,6 +2,8 @@ clear all
 close all
 clc
 
+addpath('wltp_cycles')
+
 %% Model parameters
 % *1: da "Hybrid Electric Energy Management Strategies, Onori, Serrao, Rizzoni"
 parameters.rhoa     =   1.22;   % *1 [kg/m^3]

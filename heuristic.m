@@ -2,12 +2,18 @@ clear all
 close all
 clc
 
-%%
 addpath('results')
-load('5iter.mat');
+addpath('wltp_cycles')
+load('5iter2.mat');
 
 %% read wltp excel file
-wltp_cycle = xlsread('wltp_cycle.xlsx');
+parameters.reg_break_limit = 10000;
+
+%% read wltp excel file
+%wltp_cycle = xlsread('wltp_cycle.xlsx');
+wltp_cycle = xlsread('wltp_cycle2.xlsx');
+%wltp_cycle = xlsread('wltp_cycle3.xlsx');
+
 parameters.time_vec = wltp_cycle(:,1);
 parameters.v_vec = wltp_cycle(:,2)/3.6;
 parameters.a_vec = wltp_cycle(:,3);
