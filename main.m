@@ -18,9 +18,9 @@ parameters.R0       =   0.13;   % *1 [Ohm]
 parameters.Qnom     =   23400;  % *1 [C]
 parameters.eta_coul =   0.95;
 
-parameters.reg_break_limit = 10000; % regenerative breaking max recharge power [kW]
+parameters.reg_break_limit = 10000; % regenerative breaking max recharge power [W]
 
-dim_decision_var = 4; % time interval in seconds, equivalent to the dimension of the decision variable
+dim_decision_var = 1; % time interval in seconds, equivalent to the dimension of the decision variable
 interval_size = 1800/dim_decision_var; % will be length of u_compressed
 parameters.interval_size = interval_size;
 
@@ -36,9 +36,9 @@ parameters.v_vec = wltp_cycle(:,2)/3.6;
 parameters.a_vec = wltp_cycle(:,3);
 
 %% Plot speed and acceleration profile
-% figure(1),
-% subplot(2,1,1),plot(parameters.time_vec, parameters.v_vec*3.6),grid on, hold on,xlabel('time [s]'),ylabel('v_ref [km/h]')
-% subplot(2,1,2),plot(parameters.time_vec, parameters.a_vec),grid on, hold on,xlabel('time [s]'),ylabel('a_ref [m/s^2]')
+figure(1),
+subplot(2,1,1),plot(parameters.time_vec, parameters.v_vec*3.6),grid on, hold on,xlabel('time [s]'),ylabel('v_ref [km/h]')
+subplot(2,1,2),plot(parameters.time_vec, parameters.a_vec),grid on, hold on,xlabel('time [s]'),ylabel('a_ref [m/s^2]')
 
 %% Retrive efficiency map
 load lasso_param.mat
@@ -73,7 +73,7 @@ myoptions.ls_beta       =	0.1;
 myoptions.ls_c          =	0.1;
 myoptions.ls_nitermax   =	10;
 
-myoptions.nitermax      =	1;
+myoptions.nitermax      =	5;
 
 myoptions.xsequence     =	'on';
 myoptions.GN_funF       =   @(x)big_fun(x,parameters);
@@ -115,27 +115,6 @@ for ind=2:N
     soc_vec_ICE(ind,1) = soc_vec_ICE(ind-1,1); % soc never changes
 end
 
-%% Simulation ICE only + EM from regenerative braking
-m_f_ICEreg = zeros(N,1);
-soc_vec_ICEreg = zeros(N,1);
-
-% initialization of the soc
-soc_vec_ICEreg(1,1) = parameters.initial_soc;
-
-% second strategy -> use EM if soc > initial_soc
-u_vec = zeros(N,1);
-
-for ind=2:N
-    [m_f_dot,soc_dot] = fuel_consumption(parameters, u_vec(ind,1),ind);
-    
-    m_f_ICEreg(ind,1) = m_f_ICEreg(ind-1,1)+Ts*m_f_dot; 
-
-    soc_vec_ICEreg(ind,1) = soc_vec_ICEreg(ind-1,1)+Ts*soc_dot;
-    
-    if soc_vec_ICEreg(ind,1) > parameters.initial_soc
-        u_vec(ind+1,1) = 1;
-    end
-end
 %% Simulation (optimum control)
 m_f_opt = zeros(N,1); % mass of the fuel
 soc_vec_opt = zeros(N,1); % state of charge
@@ -165,15 +144,13 @@ close all
 
 figure(1),
 plot(tvec, m_f_ICE,'LineWidth',1.5),grid on, hold on,xlabel('time [s]'),ylabel('fuel consumption [kg]')
-% plot(tvec, m_f_ICEreg,'LineWidth',1.5,'color', 'r'),grid on, hold on,xlabel('time [s]'),ylabel('fuel consumption [kg]')
 plot(tvec, m_f_opt,'LineWidth',1.5,'color', 'g'),grid on, hold on,xlabel('time [s]'),ylabel('fuel consumption [kg]')
-legend('ICE only', 'ICE+RB', 'Optimum Ctrl')
+legend('ICE only','Optimum Ctrl')
 
 figure(2),
 plot(tvec, soc_vec_ICE,'LineWidth',1.5),grid on, hold on, xlabel('time [s]'),ylabel('soc')
-% plot(tvec, soc_vec_ICEreg,'LineWidth',1.5,'color', 'r'),grid on, hold on, xlabel('time [s]'),ylabel('soc')
 plot(tvec, soc_vec_opt,'LineWidth',1.5,'color', 'g'),grid on, hold on, xlabel('time [s]'),ylabel('soc')
-legend('ICE only', 'ICE+RB','Optimum Ctrl')
+legend('ICE only','Optimum Ctrl')
 axis([-inf inf 0 1])
 
 figure(3)
