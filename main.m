@@ -20,8 +20,8 @@ parameters.eta_coul =   0.95;
 
 parameters.reg_break_limit = 10000; % regenerative breaking max recharge power [W]
 
-dim_decision_var = 1; % time interval in seconds, equivalent to the dimension of the decision variable
-interval_size = 1800/dim_decision_var; % will be length of u_compressed
+parameters.dim_decision_var = 1; % time interval in seconds, equivalent to the dimension of the decision variable
+interval_size = 1800/parameters.dim_decision_var; % will be length of u_compressed
 parameters.interval_size = interval_size;
 
 % lower and higher constraints on soc, 0.1 < soc_vec(t) < 0.9 for every t
@@ -31,6 +31,9 @@ parameters.initial_soc = 0.8; % initial state of charge of the battery
 
 % read wltp excel file
 wltp_cycle = xlsread('wltp_cycle.xlsx');
+%wltp_cycle = xlsread('wltp_cycle2.xlsx');
+%wltp_cycle = xlsread('wltp_cycle3.xlsx');
+
 parameters.time_vec = wltp_cycle(:,1);
 parameters.v_vec = wltp_cycle(:,2)/3.6;
 parameters.a_vec = wltp_cycle(:,3);
