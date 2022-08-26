@@ -3,11 +3,11 @@ close all
 clc
 
 addpath('results')
+addpath('functions')
 addpath('wltp_cycles')
-load('5iter2.mat');
 
-%% read wltp excel file
-parameters.reg_break_limit = 10000;
+%% load optimization result
+load('5iter2.mat');
 
 %% read wltp excel file
 %wltp_cycle = xlsread('wltp_cycle.xlsx');
@@ -29,6 +29,9 @@ hold on, grid on, box on
 plot(parameters.time_vec, parameters.a_vec, 'LineWidth',1.5,'Color','b')
 xlabel('Time [s]'), ylabel('Acceleration [m/s^2]')
 linkaxes(sp,'x'), clear sp
+
+%% change regenerative braking limit
+parameters.reg_break_limit = 10000;
 
 %% Simulation (only ICE)
 m_f1 = zeros(N,1);        % this will be the integral in tvec of m_f_dot

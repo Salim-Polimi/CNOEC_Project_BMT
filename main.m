@@ -3,6 +3,8 @@ close all
 clc
 
 addpath('wltp_cycles')
+addpath('functions')
+addpath('fit_efficiency_map')
 
 %% Model parameters
 % *1: da "Hybrid Electric Energy Management Strategies, Onori, Serrao, Rizzoni"
